@@ -2,7 +2,6 @@ import logging
 import tensorflow as tf
 
 
-# todo: handle saving/restoring replay memory
 class Saver(tf.train.Saver):
     def __init__(self, session, dir, *args, **kwargs):
         tf.train.Saver.__init__(self, *args, **kwargs)
@@ -24,3 +23,10 @@ class Saver(tf.train.Saver):
 
     def get_start_frame(self):
         return self.start_frame
+
+    # todo: handle saving/restoring replay memory
+    def replay_memory_found(self):
+        return False
+
+    def get_replay_memory(self):
+        return None

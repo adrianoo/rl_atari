@@ -50,8 +50,11 @@ def play():
     logging.info('Screen resolution is %dx%d' % (height, width))
     num_actions = game_handler.num_actions
     net_manager = DualDeepQNetwork(IMAGE_HEIGHT, IMAGE_WIDTH, sess, num_actions, STATE_FRAMES, DISCOUNT_FACTOR)
-    replay_memory = ReplayMemoryManager(IMAGE_HEIGHT, IMAGE_WIDTH, REPLAY_MEMORY_SIZE)
     saver = Saver(sess, DATA_DIR)
+    if saver.replay_memory_found():
+        replay_memory = saver.get_replay_memory()
+    else:
+        replay_memory = ReplayMemoryManager(IMAGE_HEIGHT, IMAGE_WIDTH, REPLAY_MEMORY_SIZE)
     agent = Agent(game_handler, net_manager, replay_memory, saver)
 
     sess.run(tf.initialize_all_variables())

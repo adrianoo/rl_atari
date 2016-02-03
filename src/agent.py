@@ -68,7 +68,7 @@ class Agent(object):
             self.total_reward_curr_episode = 0
             while True:
                 action, results = self._choose_action(epsilon)
-                game_over = self._make_action(action, 4)
+                game_over = self._make_action(action, self.frame_skip)
                 error = self._train(self.batch_size)
 
                 msg = 'Frame %d; epsilon %.4f; error %.5f' % (
