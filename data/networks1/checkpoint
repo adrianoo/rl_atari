@@ -1,0 +1,6 @@
+model_checkpoint_path: "../data/networks1/net-2665654"
+all_model_checkpoint_paths: "../data/networks1/net-2665050"
+all_model_checkpoint_paths: "../data/networks1/net-2665246"
+all_model_checkpoint_paths: "../data/networks1/net-2665382"
+all_model_checkpoint_paths: "../data/networks1/net-2665514"
+all_model_checkpoint_paths: "../data/networks1/net-2665654"
