@@ -43,8 +43,6 @@ class DualDeepQNetwork(object):
         target = self.get_target(batch)
         actions = np.zeros([batch_size, self.num_actions])
         actions[:, list(batch['actions'])] = 1
-#        print target.shape
-#        print actions.shape
         _, error_val, pred = self.session.run(
             [self.train_step, self.error, self.prediction],
             feed_dict={self.target_pl: target, self.actions_pl: actions, self.input_pl: batch['states_1']})

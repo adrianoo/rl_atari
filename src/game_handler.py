@@ -9,7 +9,6 @@ sys.path.insert(0, '../../../Arcade-Learning-Environment-0.5.1/')
 
 from collections import deque
 import matplotlib.pyplot as plt
-import numpy as np
 
 from ale_python_interface import ALEInterface
 
