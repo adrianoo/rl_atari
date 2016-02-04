@@ -6,8 +6,8 @@ import cnn
 
 import numpy as np
 import tensorflow as tf
-from utils import average_gradients, get_feed_dict
 from qnetwork import get_inference
+from rl_utils import average_gradients, get_feed_dict
 
 
 class MultiGPUDualDeepQNetwork(object):

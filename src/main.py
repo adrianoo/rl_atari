@@ -9,6 +9,7 @@ import tensorflow as tf
 
 from agent import Agent
 from qnetwork import DualDeepQNetwork
+from multi_gpu_qnetwork import MultiGPUDualDeepQNetwork
 from image_processing import crop_and_resize
 from game_handler import GameStateHandler
 from replay_memory import ReplayMemoryManager
@@ -50,8 +51,10 @@ def play():
         logging.info('Screen resolution is %dx%d' % (height, width))
         num_actions = game_handler.num_actions
         optimizer = tf.train.RMSPropOptimizer(0.00025, 0.9, 0.95, 0.01)
-        qnetwork = DualDeepQNetwork(IMAGE_HEIGHT, IMAGE_WIDTH, sess, num_actions, STATE_FRAMES, DISCOUNT_FACTOR,
-                                    optimizer=optimizer)
+#        qnetwork = DualDeepQNetwork(IMAGE_HEIGHT, IMAGE_WIDTH, sess, num_actions, STATE_FRAMES, DISCOUNT_FACTOR,
+#                                    optimizer=optimizer)
+        qnetwork = MultiGPUDualDeepQNetwork(IMAGE_HEIGHT, IMAGE_WIDTH, sess, num_actions, STATE_FRAMES, DISCOUNT_FACTOR,
+                                            optimizer=optimizer, gpus=[0, 1, 2, 3])
         saver = Saver(sess, DATA_DIR)
         if saver.replay_memory_found():
             replay_memory = saver.get_replay_memory()
@@ -68,8 +71,10 @@ def play():
         agent.play(frames_limit=LEARNING_BEYOND_EXPLORING+EXPLORING_DURATION, start_eps=start_epsilon,
                    final_eps=FINAL_EPSILON, exploring_duration=EXPLORING_DURATION - saver.get_start_frame())
 
+
 def main(argv=None):
     play()
+
 
 if __name__ == '__main__':
     tf.app.run()
