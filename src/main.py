@@ -15,14 +15,14 @@ from replay_memory import ReplayMemoryManager
 from saver import Saver
 
 ROM_FILE = '../roms/breakout.bin'
-MAX_ITERATIONS = 15000000
 
 DISCOUNT_FACTOR = 0.99
 START_EPSILON = 1.0
 FINAL_EPSILON = 0.05
-EXPLORING_DURATION = 2000000
+EXPLORING_DURATION = 2000
+LEARNING_BEYOND_EXPLORING = 2000
 REPLAY_MEMORY_SIZE = 1000000
-MIN_REPLAY_MEMORY = 100000
+MIN_REPLAY_MEMORY = 10000
 BATCH_SIZE = 32
 EMULATOR_FRAME_SKIP = 1
 FRAME_SKIP = 4
@@ -38,39 +38,38 @@ GUESSING_AGENT_STATE = 'guessing'
 
 
 def play():
-    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG)
-    logging.getLogger().addHandler(logging.StreamHandler())
+    with tf.Session() as sess:
+        logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG)
+        logging.getLogger().addHandler(logging.StreamHandler())
 
-    sess = tf.Session()
-    game_handler = GameStateHandler(frame_skip=EMULATOR_FRAME_SKIP, random_seed=123, state_frames=STATE_FRAMES, use_sdl=False,
-                                    image_processing=lambda x: crop_and_resize(x, IMAGE_HEIGHT, IMAGE_WIDTH))
-    game_handler.loadROM(ROM_FILE)
+        game_handler = GameStateHandler(frame_skip=EMULATOR_FRAME_SKIP, random_seed=123, state_frames=STATE_FRAMES, use_sdl=False,
+                                        image_processing=lambda x: crop_and_resize(x, IMAGE_HEIGHT, IMAGE_WIDTH))
+        game_handler.loadROM(ROM_FILE)
 
-    height, width = game_handler.getScreenDims()
-    logging.info('Screen resolution is %dx%d' % (height, width))
-    num_actions = game_handler.num_actions
-    optimizer = tf.train.RMSPropOptimizer(0.00025, 0.9, 0.95, 0.01)
-    qnetwork = DualDeepQNetwork(IMAGE_HEIGHT, IMAGE_WIDTH, sess, num_actions, STATE_FRAMES, DISCOUNT_FACTOR,
-                                optimizer=optimizer)
-    saver = Saver(sess, DATA_DIR)
-    if saver.replay_memory_found():
-        replay_memory = saver.get_replay_memory()
-    else:
-        replay_memory = ReplayMemoryManager(IMAGE_HEIGHT, IMAGE_WIDTH, REPLAY_MEMORY_SIZE)
-    agent = Agent(game_handler, qnetwork, replay_memory, saver)
+        height, width = game_handler.getScreenDims()
+        logging.info('Screen resolution is %dx%d' % (height, width))
+        num_actions = game_handler.num_actions
+        optimizer = tf.train.RMSPropOptimizer(0.00025, 0.9, 0.95, 0.01)
+        qnetwork = DualDeepQNetwork(IMAGE_HEIGHT, IMAGE_WIDTH, sess, num_actions, STATE_FRAMES, DISCOUNT_FACTOR,
+                                    optimizer=optimizer)
+        saver = Saver(sess, DATA_DIR)
+        if saver.replay_memory_found():
+            replay_memory = saver.get_replay_memory()
+        else:
+            replay_memory = ReplayMemoryManager(IMAGE_HEIGHT, IMAGE_WIDTH, REPLAY_MEMORY_SIZE)
+        agent = Agent(game_handler, qnetwork, replay_memory, saver)
 
-    sess.run(tf.initialize_all_variables())
-    saver.restore(DATA_DIR)
+        sess.run(tf.initialize_all_variables())
+        saver.restore(DATA_DIR)
 
-    start_epsilon = max(FINAL_EPSILON,
-                        START_EPSILON - saver.get_start_frame() * (START_EPSILON - FINAL_EPSILON) / EXPLORING_DURATION)
-    agent.populate_replay_memory(MIN_REPLAY_MEMORY)
-    agent.play(frames_limit=1000000+EXPLORING_DURATION, start_eps=start_epsilon, final_eps=FINAL_EPSILON,
-               exploring_duration=EXPLORING_DURATION - saver.get_start_frame())
-
+        start_epsilon = max(FINAL_EPSILON,
+                            START_EPSILON - saver.get_start_frame() * (START_EPSILON - FINAL_EPSILON) / EXPLORING_DURATION)
+        agent.populate_replay_memory(MIN_REPLAY_MEMORY)
+        agent.play(frames_limit=LEARNING_BEYOND_EXPLORING+EXPLORING_DURATION, start_eps=start_epsilon,
+                   final_eps=FINAL_EPSILON, exploring_duration=EXPLORING_DURATION - saver.get_start_frame())
 
 def main():
     play()
 
 if __name__ == '__main__':
-    main()
+    tf.app.run()

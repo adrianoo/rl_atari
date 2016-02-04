@@ -97,7 +97,7 @@ class Agent(object):
                     msg += '; results %s' % str(results)
                 logging.info(msg)
 
-                epsilon = max(final_eps, epsilon - (start_eps - final_eps) / exploring_duration)
+                epsilon = max(final_eps, epsilon - self.frame_skip * (start_eps - final_eps) / exploring_duration)
                 if game_over:
                     logging.info('Episode %d passed after %d frames, with total reward of %d\n\n' % \
                         (episode_number, self.game_handler.getEpisodeFrameNumber(),
