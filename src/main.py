@@ -8,7 +8,7 @@ import logging
 import tensorflow as tf
 
 from agent import Agent
-from inference import DualDeepQNetwork
+from qnetwork import DualDeepQNetwork
 from image_processing import crop_and_resize
 from game_handler import GameStateHandler
 from replay_memory import ReplayMemoryManager
@@ -49,13 +49,15 @@ def play():
     height, width = game_handler.getScreenDims()
     logging.info('Screen resolution is %dx%d' % (height, width))
     num_actions = game_handler.num_actions
-    net_manager = DualDeepQNetwork(IMAGE_HEIGHT, IMAGE_WIDTH, sess, num_actions, STATE_FRAMES, DISCOUNT_FACTOR)
+    optimizer = tf.train.RMSPropOptimizer(0.00025, 0.9, 0.95, 0.01)
+    qnetwork = DualDeepQNetwork(IMAGE_HEIGHT, IMAGE_WIDTH, sess, num_actions, STATE_FRAMES, DISCOUNT_FACTOR,
+                                optimizer=optimizer)
     saver = Saver(sess, DATA_DIR)
     if saver.replay_memory_found():
         replay_memory = saver.get_replay_memory()
     else:
         replay_memory = ReplayMemoryManager(IMAGE_HEIGHT, IMAGE_WIDTH, REPLAY_MEMORY_SIZE)
-    agent = Agent(game_handler, net_manager, replay_memory, saver)
+    agent = Agent(game_handler, qnetwork, replay_memory, saver)
 
     sess.run(tf.initialize_all_variables())
     saver.restore(DATA_DIR)

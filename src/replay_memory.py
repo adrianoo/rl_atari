@@ -86,7 +86,7 @@ class ReplayMemoryManager(object):
             self.legit_state.add(self.end)
         else:
             #todo: think about it
-#            self.legit_state.delete(self.end)
+            #self.legit_state.delete(self.end)
             self.legit_state.add(self.end)
         if game_over:
             self.frames_from_last_termination = 0
