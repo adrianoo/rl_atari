@@ -68,7 +68,7 @@ def play():
         agent.play(frames_limit=LEARNING_BEYOND_EXPLORING+EXPLORING_DURATION, start_eps=start_epsilon,
                    final_eps=FINAL_EPSILON, exploring_duration=EXPLORING_DURATION - saver.get_start_frame())
 
-def main():
+def main(argv=None):
     play()
 
 if __name__ == '__main__':
