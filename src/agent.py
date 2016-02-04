@@ -1,5 +1,6 @@
-import random
 import logging
+import random
+import sys
 
 
 class Agent(object):
@@ -23,12 +24,14 @@ class Agent(object):
         self.curr_screen = game_handler.getProcessedImage()
         self.total_reward_curr_episode = 0
 
-
-    def _choose_action(self, epsilon):
-        if random.random() <= epsilon:
-            action, results = random.randrange(self.game_handler.num_actions), None
-        else:
+    # if we choosing random action, we may not want to calculate action value from network to save time.
+    # force_results forces calculating action value for debugging/monitoring
+    def _choose_action(self, epsilon, force_results=False):
+        results = None
+        if force_results:
             action, results = self.qnetwork.get_best_action(self.replay_memory.last_state())
+        if random.random() <= epsilon:
+            action = random.randrange(self.game_handler.num_actions)
         return action, results
 
     def _make_action(self, action, times=1):
@@ -50,11 +53,21 @@ class Agent(object):
         return self.qnetwork.train(batch)
 
     def populate_replay_memory(self, frames):
-        for i in xrange(frames):
+        for i in xrange(sys.maxint):
             action, _ = self._choose_action(1)
-            self._make_action(action)
+            game_over = self._make_action(action)
+            if i >= frames and game_over:
+                break
+            if game_over:
+                self.game_handler.reset_game()
 
-    def play(self, episodes, start_eps=None, final_eps=None, exploring_duration=None):
+    def play(self, episodes_limit=None, frames_limit=None, start_eps=None, final_eps=None, exploring_duration=None):
+        if episodes_limit is None and frames_limit is None:
+            raise "episodes and frames limits are None. At least one should be positive integer"
+        if episodes_limit is None:
+            episodes_limit = sys.maxint
+        if frames_limit is None:
+            frames_limit = sys.maxint
         if start_eps is None:
             start_eps = self.start_epsilon
         if final_eps is None:
@@ -63,11 +76,15 @@ class Agent(object):
             exploring_duration = self.exploring_duration
 
         epsilon = start_eps
-        for episode_number in xrange(1, episodes):
+        logging.debug('start_frame = %d; getFrameNumber = %d' % (self.saver.get_start_frame(),
+                                                                 self.game_handler.getFrameNumber()))
+        first_frame_number = self.game_handler.getFrameNumber() + self.saver.get_start_frame()
+
+        for episode_number in xrange(0, episodes_limit):
             self.game_handler.reset_game()
             self.total_reward_curr_episode = 0
             while True:
-                action, results = self._choose_action(epsilon)
+                action, results = self._choose_action(epsilon, force_results=True)
                 game_over = self._make_action(action, self.frame_skip)
                 error = self._train(self.batch_size)
 
@@ -87,3 +104,5 @@ class Agent(object):
                          self.total_reward_curr_episode))
                     self.saver.save(global_step=(self.game_handler.getFrameNumber() + self.saver.get_start_frame()))
                     break
+            if self.game_handler.getFrameNumber() + self.saver.get_start_frame() - first_frame_number >= frames_limit:
+                break

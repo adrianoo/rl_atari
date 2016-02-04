@@ -20,7 +20,7 @@ MAX_ITERATIONS = 15000000
 DISCOUNT_FACTOR = 0.99
 START_EPSILON = 1.0
 FINAL_EPSILON = 0.05
-EXPLORING_DURATION = 20000
+EXPLORING_DURATION = 2000000
 REPLAY_MEMORY_SIZE = 1000000
 MIN_REPLAY_MEMORY = 100000
 BATCH_SIZE = 32
@@ -38,7 +38,7 @@ GUESSING_AGENT_STATE = 'guessing'
 
 
 def play():
-    logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
+    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG)
     logging.getLogger().addHandler(logging.StreamHandler())
 
     sess = tf.Session()
@@ -63,7 +63,8 @@ def play():
     start_epsilon = max(FINAL_EPSILON,
                         START_EPSILON - saver.get_start_frame() * (START_EPSILON - FINAL_EPSILON) / EXPLORING_DURATION)
     agent.populate_replay_memory(MIN_REPLAY_MEMORY)
-    agent.play(1000000, start_epsilon, FINAL_EPSILON, EXPLORING_DURATION - saver.get_start_frame())
+    agent.play(frames_limit=1000000+EXPLORING_DURATION, start_eps=start_epsilon, final_eps=FINAL_EPSILON,
+               exploring_duration=EXPLORING_DURATION - saver.get_start_frame())
 
 
 def main():
