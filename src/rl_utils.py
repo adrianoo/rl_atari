@@ -43,3 +43,10 @@ def get_feed_dict(placeholders_values_pairs, number_of_gpus):
         for i, pl in enumerate(placeholders):
             res[pl] = batch[i * div: (i+1) * div]
     return res
+
+
+def expand_list(ls):
+    res = []
+    for x in ls:
+        res.append(tf.expand_dims(x, 0))
+    return res

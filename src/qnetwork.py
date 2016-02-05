@@ -79,12 +79,20 @@ class DeepQNetwork(object):
 
 
 class DualDeepQNetwork(DeepQNetwork):
-    def __init__(self, height, width, session, num_actions, state_frames, gamma,
+    def __init__(self, height, width, session, num_actions, state_frames, gamma, target_net_refresh_rate,
                  optimizer=tf.train.AdamOptimizer(1e-6)):
         DeepQNetwork.__init__(self, height, width, session, num_actions, state_frames, gamma, optimizer)
 
+        self.target_net_refresh_rate = target_net_refresh_rate
         self.target_network = get_inference(self.input_pl, num_actions, 'target_net')
-        self.update_target()
+        self.train_counter = 0
+
+    def train(self, batch):
+        if self.train_counter % self.target_net_refresh_rate == 0:
+#            pass
+            self.update_target()
+        self.train_counter += 1
+        return DeepQNetwork.train(self, batch)
 
     def get_target(self, batch):
         batch_size = batch['batch_size']

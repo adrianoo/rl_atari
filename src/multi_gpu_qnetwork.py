@@ -7,7 +7,7 @@ import cnn
 import numpy as np
 import tensorflow as tf
 from qnetwork import get_inference
-from rl_utils import average_gradients, get_feed_dict
+from rl_utils import average_gradients, get_feed_dict, expand_list
 
 
 class MultiGPUDualDeepQNetwork(object):
@@ -39,10 +39,11 @@ class MultiGPUDualDeepQNetwork(object):
 
                 tf.get_variable_scope().reuse_variables()
 
+                #with tf.device('/cpu:0'):
                 prediction = tf.reduce_sum(tf.mul(network.output, self.actions_pl_list[i]), 1)
                 error = tf.reduce_mean(tf.square(self.target_pl_list[i] - prediction))
 
-                gradients.append(self.opt.compute_gradients(error))
+                gradients.append(self.opt.compute_gradients(error, network.params))
                 outputs.append(network.output)
                 target_outputs.append(target_network.output)
                 errors.append(error)
@@ -50,7 +51,7 @@ class MultiGPUDualDeepQNetwork(object):
         self.grads = average_gradients(gradients)
         self.out = tf.concat(0, outputs)
         self.target_out = tf.concat(0, target_outputs)
-        self.error = tf.reduce_mean(errors)
+        self.error = tf.reduce_mean(tf.concat(0, expand_list(errors)))
 
         self.network = get_inference(self.input_pl_list[0], num_actions, 'main_net')
         self.target_network = get_inference(self.input_pl_list[0], num_actions, 'target_net')
