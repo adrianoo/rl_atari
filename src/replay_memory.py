@@ -65,11 +65,11 @@ class ReplayMemoryManager(object):
         else:
             assert self.legit_state.find((index - 1 + self.size) % self.size)
         assert self.size >= self.state_frames
-        if index - self.state_frames >= 0:
-            res = self.screen_queue[index - self.state_frames + 1: index + 1]
+        if index >= self.state_frames:
+            res = self.screen_queue[index - self.state_frames: index]
         else:
-            res = np.concatenate([self.screen_queue[self.end - self.state_frames + index + 1: self.end],
-                                  self.screen_queue[0: index + 1]])
+            res = np.concatenate([self.screen_queue[self.size - self.state_frames + index: self.size],
+                                  self.screen_queue[0: index]])
         return res.transpose([1, 2, 0])
 
     def last_state(self):
