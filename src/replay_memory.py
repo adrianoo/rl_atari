@@ -44,7 +44,7 @@ class FastSet(object):
 
 
 class ReplayMemoryManager(object):
-    def __init__(self, image_height, image_width, max_size=150000, state_frames=4):
+    def __init__(self, image_height, image_width, state_frames, max_size, reward_clip_min, reward_clip_max):
         self.max_size = max_size
         self.state_frames = state_frames
         self.screen_queue = np.empty([max_size, image_height, image_width], dtype=np.uint8)
@@ -58,6 +58,8 @@ class ReplayMemoryManager(object):
         self.image_height = image_height
         self.image_width = image_width
         self.state_frames = state_frames
+        self.min_reward = reward_clip_min
+        self.max_reward = reward_clip_max
 
     def state_at(self, index, next_state=False):
         if not next_state:
@@ -70,13 +72,14 @@ class ReplayMemoryManager(object):
         else:
             res = np.concatenate([self.screen_queue[self.size - self.state_frames + index: self.size],
                                   self.screen_queue[0: index]])
-        return res.transpose([1, 2, 0])
+        return res
 
     def last_state(self):
         assert self.size > 0
         return self.state_at((self.end - 1 + self.size) % self.size)
 
     def add_experience(self, prev_screen, action, reward, game_over):
+        reward = max(reward, min(reward, self.max_reward), self.min_reward)
         self.screen_queue[self.end] = prev_screen
         self.action_queue[self.end] = action
         self.reward_queue[self.end] = reward
