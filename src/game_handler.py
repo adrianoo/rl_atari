@@ -31,9 +31,10 @@ class GameStateHandler(ALEInterface):
                 self.setBool('display_screen', True)
 
         self.setFloat('repeat_action_probability', repeat_action_probability)
+        self.setInt('frame_skip', frame_skip)
 
         self.random_seed = random_seed
-        self.frame_skip = frame_skip
+        self.frame_skip = frame_skip # trolololo
         self.minimum_actions = minimum_actions
         self.test_mode = test_mode
         self.image_processing = image_processing
@@ -61,6 +62,12 @@ class GameStateHandler(ALEInterface):
         self.height, self.width = self.getScreenDims()
 
     def act(self, a):
+        lives = ALEInterface.lives(self)
+        reward = ALEInterface.act(self, self.legal_actions[a])
+        game_over = ALEInterface.game_over(self) or (not self.test_mode and ALEInterface.lives(self) < lives)
+        return reward, game_over
+
+    def act_with_frame_skip(self, a): # trolololo
         reward = 0
         game_over = False
         lives = ALEInterface.lives(self)
