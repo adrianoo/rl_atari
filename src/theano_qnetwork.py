@@ -53,7 +53,6 @@ def get_inference(num_actions, height, width, state_frames, conv=lasagne.layers.
     )
     return net
 
-
 class DeepQNetwork(object):
     def __init__(self, height, width, num_actions, state_frames, gamma, batch_size=32):
         self.gamma = gamma

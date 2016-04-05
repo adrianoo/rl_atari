@@ -107,5 +107,6 @@ class Agent(object):
                 break
 
     def play_in_test_mode(self, epsilon):
+        self.monitor.start_timer()
         while True:
             self.play_game(epsilon, epsilon, 0)

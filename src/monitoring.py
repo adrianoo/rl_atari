@@ -36,7 +36,6 @@ class Monitoring(object):
             sec_per_train = (self.steps_deq[-1] - self.steps_deq[0]) / self.steps_window
             logging.info('Step %d; sec per step %.4f; steps per sec %.2f; epsilon %.4f; error %.8f; results %s' %
                          (self.steps_count, sec_per_train, 1./sec_per_train, epsilon, error, str(results)))
-            print results
 
     def test_mode_step(self, results):
         logging.info('q-values %s' % str(results))

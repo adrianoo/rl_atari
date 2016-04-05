@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import tensorflow as tf
 
 import qnetwork
@@ -59,9 +60,12 @@ parser.add_argument('--double_dqn', dest='double_dqn', action='store_true', defa
 parser.add_argument('--target_net_refresh_rate', type=int, default=10000)
 parser.add_argument('--net_type', type=int, default=1)
 
-# other
+# test mode
 parser.add_argument('--test_mode', dest='test_mode', action='store_true', default=False)
 parser.add_argument('--epsilon_in_test_mode', type=float, default=0.0)
+
+# other
+parser.add_argument('--continue_training', dest='continue_training', action='store_true', default=False)
 # todo: currently may not work properly - network saving not working. Also add multi gpus numbers as param
 parser.add_argument('--multi_gpu', dest='multi_gpu', action='store_true', default=False)
 # todo: change this path. Also create non existing directiories
@@ -77,6 +81,12 @@ args.image_width = 84
 
 def main(_=None):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
+        d = os.path.dirname(args.log_file)
+        if not os.path.exists(d):
+            os.makedirs(d)
+        if not args.continue_training:
+            with open(args.log_file, 'w') as f:
+                f.write('')
         logging.basicConfig(filename=args.log_file, level=logging.DEBUG)
         logging.getLogger().addHandler(logging.StreamHandler())
 
@@ -111,7 +121,7 @@ def main(_=None):
                                                               args.state_frames, args.discount_factor,
                                                               optimizer=optimizer, gpus=[0, 1, 2, 3])
 
-        saver = Saver(sess, args.data_dir)
+        saver = Saver(sess, args.data_dir, args.continue_training)
         if saver.replay_memory_found():
             replay_memory = saver.get_replay_memory()
         else:

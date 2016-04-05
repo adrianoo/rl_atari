@@ -27,14 +27,15 @@ def get_inference(inp, num_actions, name=''):
         W3 = tf.get_variable('W3', [9 * 9 * 32, 256], initializer=tf.truncated_normal_initializer(0, 0.01))
         b3 = tf.get_variable('b3', [256], initializer=tf.constant_initializer(0.01))
         W4 = tf.get_variable('W4', [256, num_actions], initializer=tf.truncated_normal_initializer(0, 0.01))
+        b4 = tf.get_variable('b4', [num_actions], initializer=tf.constant_initializer(0.01))
 
         conv1 = tf.nn.relu(tf.nn.conv2d(inp, W1, [1, 4, 4, 1], 'VALID') + b1)
         conv2 = tf.nn.relu(tf.nn.conv2d(conv1, W2, [1, 2, 2, 1], 'VALID') + b2)
         reshaped = tf.reshape(conv2, [-1, 9 * 9 * 32])
         fc1 = tf.nn.relu(tf.matmul(reshaped, W3) + b3)
-        out = tf.matmul(fc1, W4)
+        out = tf.matmul(fc1, W4) + b4
 
-        res = Net(out, [W1, b1, W2, b2, W3, b3, W4])
+        res = Net(out, [W1, b1, W2, b2, W3, b3, W4, b4])
     return res
 
 
@@ -49,15 +50,17 @@ def get_inference2(inp, num_actions, name=''):
         W4 = tf.get_variable('W4', [7 * 7 * 64, 512], initializer=tf.truncated_normal_initializer(0, 0.01))
         b4 = tf.get_variable('b4', [512], initializer=tf.constant_initializer(0.01))
         W5 = tf.get_variable('W5', [512, num_actions], initializer=tf.truncated_normal_initializer(0, 0.01))
+        b5 = tf.get_variable('b5', [num_actions], initializer=tf.constant_initializer(0.01))
+
 
         conv1 = tf.nn.relu(tf.nn.conv2d(inp, W1, [1, 4, 4, 1], 'VALID') + b1)
         conv2 = tf.nn.relu(tf.nn.conv2d(conv1, W2, [1, 2, 2, 1], 'VALID') + b2)
         conv3 = tf.nn.relu(tf.nn.conv2d(conv2, W3, [1, 1, 1, 1], 'VALID') + b3)
         reshaped = tf.reshape(conv3, [-1, 7 * 7 * 64])
         fc1 = tf.nn.relu(tf.matmul(reshaped, W4) + b4)
-        out = tf.matmul(fc1, W5)
+        out = tf.matmul(fc1, W5) + b5
 
-        res = Net(out, [W1, b1, W2, b2, W3, b3, W4, b4, W5])
+        res = Net(out, [W1, b1, W2, b2, W3, b3, W4, b4, W5, b5])
     return res
 
 
